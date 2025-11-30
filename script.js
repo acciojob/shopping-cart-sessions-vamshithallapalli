@@ -1,4 +1,4 @@
-// Product data
+// Product Data
 const products = [
   { id: 1, name: "Product 1", price: 10 },
   { id: 2, name: "Product 2", price: 20 },
@@ -7,16 +7,22 @@ const products = [
   { id: 5, name: "Product 5", price: 50 },
 ];
 
-// Cart array
-let cart = [];
-
-// DOM elements
+// DOM Elements
 const productList = document.getElementById("product-list");
 const cartList = document.getElementById("cart-list");
-const totalAmount = document.getElementById("total-amount");
+const clearCartBtn = document.getElementById("clear-cart-btn");
 
-// Render product list
+// ---------------------------
+// Load Cart from sessionStorage
+// ---------------------------
+let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
+
+// ---------------------------
+// Render Product List
+// ---------------------------
 function renderProducts() {
+  productList.innerHTML = ""; // clear before rendering (optional)
+
   products.forEach((product) => {
     const li = document.createElement("li");
     li.innerHTML = `
@@ -26,7 +32,7 @@ function renderProducts() {
     productList.appendChild(li);
   });
 
-  // Add event listener for add-to-cart buttons
+  // Attach event listeners for add buttons
   document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       addToCart(parseInt(btn.dataset.id));
@@ -34,60 +40,59 @@ function renderProducts() {
   });
 }
 
-// Render cart items
+// ---------------------------
+// Render Cart Items
+// ---------------------------
 function renderCart() {
-  cartList.innerHTML = "";
+  cartList.innerHTML = ""; // Clear previous items
 
   if (cart.length === 0) {
-    cartList.innerHTML = "<li>Your cart is empty</li>";
-    totalAmount.textContent = "0";
-    return;
+    return; // Keeps UL empty (Cypress will check that)
   }
 
   cart.forEach((item) => {
     const li = document.createElement("li");
-    li.innerHTML = `
-      ${item.name} - $${item.price}
-      <button class="remove-from-cart-btn" data-id="${item.id}">Remove</button>
-    `;
+    li.textContent = `${item.name} - $${item.price}`;
     cartList.appendChild(li);
   });
-
-  // Add event listeners for remove buttons
-  document.querySelectorAll(".remove-from-cart-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      removeFromCart(parseInt(btn.dataset.id));
-    });
-  });
-
-  // Update total amount
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
-  totalAmount.textContent = total;
 }
 
-// Add item to cart
+// ---------------------------
+// Add Item to Cart
+// ---------------------------
 function addToCart(productId) {
   const product = products.find((p) => p.id === productId);
 
   if (product) {
     cart.push(product);
+    updateSession();
     renderCart();
   }
 }
 
-// Remove item from cart
-function removeFromCart(productId) {
-  cart = cart.filter((item) => item.id !== productId);
+// ---------------------------
+// Clear Cart
+// ---------------------------
+function clearCart() {
+  cart = [];
+  updateSession();
   renderCart();
 }
 
-// Clear entire cart
-document.getElementById('clear-cart-btn').addEventListener('click', 
-function clearCart() {
-  cart = [];
-  renderCart();
-})
+// ---------------------------
+// Update sessionStorage
+// ---------------------------
+function updateSession() {
+  sessionStorage.setItem("cart", JSON.stringify(cart));
+}
 
-// Initial render
+// ---------------------------
+// Event Listener: Clear Cart Button
+// ---------------------------
+clearCartBtn.addEventListener("click", clearCart);
+
+// ---------------------------
+// Initial Page Load
+// ---------------------------
 renderProducts();
 renderCart();
